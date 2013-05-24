@@ -21,10 +21,13 @@ namespace Utils.Xml
             if (self.Name != nodeName || self.NodeType != XmlNodeType.Element) return;
             var currentDepth = self.Depth;
 
+            Func<XmlReader, bool> guard = xml => (xml.Depth <= currentDepth) || (xml.NodeType == XmlNodeType.EndElement && xml.Name == nodeName);
             while (self.Read()) {
-                if (self.Depth <= currentDepth) break;
-                if (self.NodeType == XmlNodeType.EndElement && self.Name == nodeName) break;
+                // Double guard condition
+                if (guard(self)) break;
                 reader(self);
+                // Prevent braking when using the XmlReader.ReadText() method
+                if (guard(self)) break;
             }
         }
 
@@ -100,6 +103,22 @@ namespace Utils.Xml
         public static Maybe<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
         {
             return self.ObjectNode(nodeName, MakeIterableItemBuilder(builder, iterator));
+        }
+
+        public static Maybe<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<string, T> text)
+        {
+            return self.ObjectNode(nodeName, MakeTextReaderBuilder(builder, text));
+        }
+
+        private static Func<XmlReader, T> MakeTextReaderBuilder<T>(Func<XmlReader, T> builder, Action<string, T> text)
+        {
+            return (xml) => {
+                var item = builder(xml);
+                xml.ReadCurrentNode(reader => {
+                    reader.ReadText().Bind(s => text(s, item));
+                });
+                return item;
+            };
         }
 
         private static Func<XmlReader, T> MakeIterableItemBuilder<T>(Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
