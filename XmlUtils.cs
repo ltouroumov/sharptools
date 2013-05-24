@@ -1,20 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using Utils.Monads;
 
 namespace Utils.Xml
 {
-    static class XmlReaderDslExtension
+    public static class XmlReaderDslExtension
     {
+        public static void ReadUntil(this XmlReader self, Func<XmlReader, bool> cond, Action<XmlReader> reader = null)
+        {
+            while (!cond(self)) {
+                if (reader != null) reader(self);
+                if (!self.Read()) break;
+            }
+        }
+
         public static void ReadNode(this XmlReader self, string nodeName, Action<XmlReader> reader)
         {
             if (self.Name != nodeName || self.NodeType != XmlNodeType.Element) return;
+            var currentDepth = self.Depth;
 
             while (self.Read()) {
+                if (self.Depth <= currentDepth) break;
                 if (self.NodeType == XmlNodeType.EndElement && self.Name == nodeName) break;
                 reader(self);
             }
@@ -25,6 +33,18 @@ namespace Utils.Xml
             self.ReadNode(self.Name, reader);
         }
 
+        public static Maybe<string> ReadText(this XmlReader self)
+        {
+            if (self.NodeType != XmlNodeType.Text) return Monad.Nothing<string>();
+
+            var sb = new StringBuilder();
+            ReadUntil(self,
+                x => x.NodeType != XmlNodeType.Text,
+                x => sb.Append(x.Value));
+
+            return sb.ToString().ToMaybe();
+        }
+
         public static Maybe<string> ScalarNode(this XmlReader self, string nodeName)
         {
             return ScalarNode<string>(self, nodeName, x => x.Trim());
@@ -32,8 +52,7 @@ namespace Utils.Xml
 
         public static Maybe<A> ScalarNode<A>(this XmlReader self, string nodeName, Func<string, A> transformer)
         {
-            if (self.NodeType == XmlNodeType.Element && self.Name == nodeName)
-            {
+            if (self.NodeType == XmlNodeType.Element && self.Name == nodeName) {
                 var buffer = new StringBuilder();
 
                 if (self.IsEmptyElement) {
@@ -44,7 +63,7 @@ namespace Utils.Xml
                     if (self.NodeType == XmlNodeType.EndElement && self.Name == nodeName) break;
 
                     buffer.Append(self.Value);
-                } 
+                }
 
                 var returnValue = buffer.ToString();
                 return transformer(returnValue).ToMaybe();
@@ -71,8 +90,7 @@ namespace Utils.Xml
 
         public static Maybe<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
         {
-            if (self.Name == nodeName && self.NodeType == XmlNodeType.Element)
-            {
+            if (self.Name == nodeName && self.NodeType == XmlNodeType.Element) {
                 return transformer(self).ToMaybe();
             }
 

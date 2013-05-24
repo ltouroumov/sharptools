@@ -31,6 +31,11 @@ namespace Utils.ComponentModel
         protected void SetValue(string key, object val)
         {
             Properties[key] = val;
+            TriggerPropertyChange(key);
+        }
+
+        protected void TriggerPropertyChange(string key)
+        {
             if (PropertyChanged != null) {
                 PropertyChanged(this, new PropertyChangedEventArgs(key));
             }
