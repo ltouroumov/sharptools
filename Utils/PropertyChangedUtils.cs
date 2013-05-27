@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Reflection;
 
-namespace Utils.ComponentModel
+namespace SharpTools.Utils.ComponentModel
 {
     public class PropertyBag : INotifyPropertyChanged
     {

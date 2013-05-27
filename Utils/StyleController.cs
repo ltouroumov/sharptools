@@ -7,7 +7,7 @@ using System.Windows;
 using Windows.UI.Xaml;
 
 
-namespace Utils.Style
+namespace SharpTools.Utils.Style
 {
     public static class StyleController
     {

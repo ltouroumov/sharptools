@@ -4,7 +4,7 @@ using System.Text;
 using System.Collections.Specialized;
 using System.Net;
 
-namespace Utils.Web
+namespace SharpTools.Utils.Web
 {
     /// <summary>
     /// A chainable query string helper class.

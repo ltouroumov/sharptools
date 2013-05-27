@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Windows.Foundation.Collections;
 using System.ComponentModel;
 
-namespace Utils.Containers
+namespace SharpTools.Utils.Containers
 {
     public static class DictionaryExtensions
     {

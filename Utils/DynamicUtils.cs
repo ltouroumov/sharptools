@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
 
-namespace Utils.Dynamic
+namespace SharpTools.Utils.Dynamic
 {
     public class DictionaryProxy<V> : DynamicObject
         where V : class

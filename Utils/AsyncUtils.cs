@@ -4,13 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Utils.Async
+namespace SharpTools.Utils.Async
 {
     public static class TaskExtensions
     {
-        public static T Await<T>(this Task<T> self)
+        public static void Sync(this Task self)
         {
-            self.Wait();
+            self.RunSynchronously();
+        }
+
+        public static T Sync<T>(this Task<T> self)
+        {
+            self.Sync();
             return self.Result;
         }
     }

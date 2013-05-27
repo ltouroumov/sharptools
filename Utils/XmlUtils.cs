@@ -2,12 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Xml;
-using Utils.Monads;
+using SharpTools.Functional;
+using SharpTools.Functional.Monads;
 
-namespace Utils.Xml
+namespace SharpTools.Utils.Xml
 {
     public static class XmlReaderDslExtension
     {
+
+        public static XmlReader Prepare(this XmlReader self)
+        {
+            self.ReadUntil(x => x.NodeType == XmlNodeType.Element);
+            return self;
+        }
+
         public static void ReadUntil(this XmlReader self, Func<XmlReader, bool> cond, Action<XmlReader> reader = null)
         {
             while (!cond(self)) {
@@ -25,6 +33,7 @@ namespace Utils.Xml
             while (self.Read()) {
                 // Double guard condition
                 if (guard(self)) break;
+                
                 reader(self);
                 // Prevent braking when using the XmlReader.ReadText() method
                 if (guard(self)) break;
@@ -105,18 +114,20 @@ namespace Utils.Xml
             return self.ObjectNode(nodeName, MakeIterableItemBuilder(builder, iterator));
         }
 
-        public static Maybe<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<string, T> text)
+        public static Maybe<T> ObjectNodeWithContent<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<string, T> text)
         {
             return self.ObjectNode(nodeName, MakeTextReaderBuilder(builder, text));
         }
 
-        private static Func<XmlReader, T> MakeTextReaderBuilder<T>(Func<XmlReader, T> builder, Action<string, T> text)
+        private static Func<XmlReader, T> MakeTextReaderBuilder<T>(Func<XmlReader, T> builder, Action<string, T> text = null, bool hasContent = true)
         {
             return (xml) => {
                 var item = builder(xml);
-                xml.ReadCurrentNode(reader => {
-                    reader.ReadText().Bind(s => text(s, item));
-                });
+                if (text != null && hasContent) {
+                    xml.ReadCurrentNode(reader => {
+                        reader.ReadText().Bind(text.Partial(item));
+                    });
+                }
                 return item;
             };
         }
