@@ -84,7 +84,7 @@ namespace SharpTools.Utils.Xml
             return Monad.Nothing<A>();
         }
 
-        public static IList<T> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
+        public static Maybe<IList<T>> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
         {
             var list = new List<T>();
 
@@ -92,10 +92,10 @@ namespace SharpTools.Utils.Xml
                 reader1.ObjectNode(nodeName, transformer).Bind(list.Add);
             });
 
-            return list;
+            return Monad.Maybe(list as IList<T>, val => val.Count > 0);
         }
 
-        public static IList<T> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
+        public static Maybe<IList<T>> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
         {
             return self.ObjectNodeList(nodeName, MakeIterableItemBuilder(builder, iterator));
         }

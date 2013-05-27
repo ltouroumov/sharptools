@@ -76,7 +76,7 @@ namespace SharpTools.Functional.Monads
     {
         public override A ToValue()
         {
-            return default(A);
+            throw new InvalidOperationException("A Nothing monad cannot be converted to a value");
         }
 
         public override Maybe<B> WhenNothing<B>(Func<Maybe<B>> binder)
@@ -99,10 +99,15 @@ namespace SharpTools.Functional.Monads
 
         public static Maybe<A> Maybe<A>(A value)
         {
-            if (value == null) {
-                return Nothing<A>();
-            } else {
+            return Maybe(value, val => val != null);
+        }
+
+        public static Maybe<A> Maybe<A>(A value, Func<A, bool> discriminator)
+        {
+            if (discriminator(value)) {
                 return Just(value);
+            } else {
+                return Nothing<A>();
             }
         }
 
@@ -127,6 +132,24 @@ namespace SharpTools.Functional.Monads
         public static Maybe<A> ToMaybe<A>(this Maybe<A> self)
         {
             return self;
+        }
+
+        public static A ToValueOrDefault<A>(this Maybe<A> self)
+        {
+            if (self is Nothing<A>) {
+                return default(A);
+            } else {
+                return (self as Just<A>).Value;
+            }
+        }
+
+        public static A ToValueOrDefault<A>(this Maybe<A> self, Func<A> provider)
+        {
+            if (self is Nothing<A>) {
+                return provider();
+            } else {
+                return (self as Just<A>).Value;
+            }
         }
     }
 }
