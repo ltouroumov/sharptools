@@ -1,0 +1,334 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+using System;
+
+namespace SharpTools.Functional
+{
+    public static class FuncRightPartialExtensions
+    {
+		<# var rgen = new RightGen(); #>
+		<# for(var argNum = 1; argNum <= 8; argNum++) {
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
+		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		// See LeftPartial for opposite order.
+		// </summary>
+		public static Func<<#= rgen.OutTypes(argNum, reduceCount) #>>
+			Partial<<#= rgen.AllTypes(argNum) #>>(this Func<<#= rgen.InTypes(argNum) #>> func, <#= rgen.InArgs(argNum, reduceCount) #>)
+		{
+			return (<#= rgen.OutArgs(argNum, reduceCount) #>) => func(<#= rgen.AllArgs(argNum) #>);
+		}
+		
+		<# } } #>
+	}
+
+	public static class FuncLeftPartialExtensions
+    {
+		<# var lgen = new LeftGen(); #>
+		<# for(var argNum = 1; argNum <= 8; argNum++) {
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
+		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		// See LeftPartial for opposite order.
+		// </summary>
+		public static Func<<#= lgen.OutTypes(argNum, reduceCount) #>>
+			LeftPartial<<#= lgen.AllTypes(argNum) #>>(this Func<<#= lgen.InTypes(argNum) #>> func, <#= lgen.InArgs(argNum, reduceCount) #>)
+		{
+			return (<#= lgen.OutArgs(argNum, reduceCount) #>) => func(<#= lgen.AllArgs(argNum) #>);
+		}
+		
+		<# } } #>
+	}
+
+	public static class ActionRightPartialExtensions
+    {
+		<# var argen = new ActionRightGen(); #>
+		<# for(var argNum = 1; argNum <= 8; argNum++) {
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
+		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		// See LeftPartial for opposite order.
+		// </summary>
+		public static <#= argen.OutTypes(argNum, reduceCount) #>
+			Partial<<#= argen.AllTypes(argNum) #>>(this <#= argen.InTypes(argNum) #> func, <#= argen.InArgs(argNum, reduceCount) #>)
+		{
+			return (<#= argen.OutArgs(argNum, reduceCount) #>) => func(<#= argen.AllArgs(argNum) #>);
+		}
+		
+		<# } } #>
+	}
+	
+	public static class ActionLeftPartialExtensions
+    {
+		<# var algen = new ActionLeftGen(); #>
+		<# for(var argNum = 1; argNum <= 8; argNum++) {
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
+		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		// See LeftPartial for opposite order.
+		// </summary>
+		public static <#= algen.OutTypes(argNum, reduceCount) #>
+			LeftPartial<<#= algen.AllTypes(argNum) #>>(this <#= algen.InTypes(argNum) #> func, <#= algen.InArgs(argNum, reduceCount) #>)
+		{
+			return (<#= algen.OutArgs(argNum, reduceCount) #>) => func(<#= algen.AllArgs(argNum) #>);
+		}
+		
+		<# } } #>
+	}
+
+	public static class FuncLeftCurryExtensions
+    {
+		<# var cgen = new CurryGen(); #>
+		<# for(var argNum = 2; argNum < 8; argNum++) { #>// <summary>
+		// Allows to curry a function with ordered parameter application.
+		// </summary>
+        public static <#= cgen.OutTypes(argNum) #>
+			Curry<<#= cgen.AllTypes(argNum) #>>(this Func<<#= cgen.InTypes(argNum) #>> func)
+        {
+            return <#= cgen.OutArgs(argNum) #> => func(<#= cgen.AllArgs(argNum) #>);
+        }
+
+		<# } #>
+    }
+
+	public static class FuncRightCurryExtensions
+    {
+		<# var rcgen = new ReverseCurryGen(); #>
+		<# for(var argNum = 2; argNum < 8; argNum++) { #>// <summary>
+		// Allows to curry a function with reverse order parameter application.
+		// </summary>
+        public static <#= rcgen.OutTypes(argNum) #>
+			ReverseCurry<<#= rcgen.AllTypes(argNum) #>>(this Func<<#= rcgen.InTypes(argNum) #>> func)
+        {
+            return <#= rcgen.OutArgs(argNum) #> => func(<#= rcgen.AllArgs(argNum) #>);
+        }
+
+		<# } #>
+    }
+
+}
+
+<#+
+
+class ArgList
+{
+	public List<string> List { get; private set; }
+
+	public ArgList() {
+		List = new List<string>();
+    }
+
+	public void Add(string format, params object[] args)
+	{
+		List.Add(string.Format(format, args));
+	}
+}
+
+abstract class BaseGen {
+
+	protected static ArgList List()
+	{
+		return new ArgList();
+	}
+
+	protected static string Join(ArgList list, string separator = ", ")
+	{
+		return string.Join(separator, list.List);
+	}
+	
+	public string InTypes(int count) {
+		return AllTypes(count);
+	}
+
+	public string AllTypes(int count) {
+		var stack = List();
+		for(var n = 1; n <= count+1; n++)
+			stack.Add("T{0}", n);
+
+		return Join(stack);
+    }
+	
+	public string AllArgs(int count) {
+		var stack = List();
+		
+		for(var n = 1; n <= count; n++)
+			stack.Add("a{0}", n);
+
+		return Join(stack);
+	}
+
+}
+
+class RightGen : BaseGen {
+
+	public string InArgs(int count, int reduce = 1) {
+		var stack = List();
+
+		for(var n = count; n > count-reduce; n--)
+			stack.Add("T{0} a{0}", n);
+
+		return Join(stack);
+	}
+
+	public string OutTypes(int count, int reduce = 1) {
+		var stack = List();
+		for(var n = 1; n <= count-reduce; n++)
+			stack.Add("T{0}", n);
+
+		stack.Add("T{0}", count+1);
+
+		return Join(stack);
+	}
+
+	public string OutArgs(int count, int reduce = 1) {
+		var stack = List();
+		
+		for(var n = 1; n <= count-reduce; n++)
+			stack.Add("a{0}", n);
+
+		return Join(stack);
+	}
+
+}
+
+class LeftGen : BaseGen {
+
+	public string InArgs(int count, int reduce = 1) {
+		var stack = List();
+
+		for(var n = 1; n <= reduce; n++)
+			stack.Add("T{0} a{0}", n);
+
+		return Join(stack);
+	}
+
+	public string OutTypes(int count, int reduce = 1) {
+		var stack = List();
+		for(var n = reduce+1; n <= count; n++)
+			stack.Add("T{0}", n);
+
+		stack.Add("T{0}", count+1);
+
+		return Join(stack);
+	}
+
+	public string OutArgs(int count, int reduce = 1) {
+		var stack = List();
+		
+		for(var n = reduce+1; n <= count; n++)
+			stack.Add("a{0}", n);
+
+		return Join(stack);
+	}
+
+}
+
+class ActionRightGen : RightGen {
+	new public string OutTypes(int count, int reduce)
+    {
+		var left = count-reduce;
+        if (left == 0) {
+			return "Action";
+        } else {
+			var stack = List();
+			for(var n = 1; n <= count-reduce; n++)
+				stack.Add("T{0}", n);
+
+			return string.Format("Action<{0}>", Join(stack));
+        }
+    }
+
+	new public string AllTypes(int count)
+    {
+		return base.AllTypes(count - 1);
+    }
+
+	new public string InTypes(int count)
+    {
+		return string.Format("Action<{0}>", base.InTypes(count - 1));
+    }
+}
+
+class ActionLeftGen : LeftGen {
+	new public string OutTypes(int count, int reduce = 1)
+    {
+		var left = count-reduce;
+        if (left == 0) {
+			return "Action";
+        } else {
+			var stack = List();
+			for(var n = reduce+1; n <= count; n++)
+				stack.Add("T{0}", n);
+
+			return string.Format("Action<{0}>", Join(stack));
+        }
+    }
+
+	new public string InArgs(int count, int reduce = 1)
+    {
+		return base.InArgs(count-1, reduce);
+    }
+
+	new public string AllTypes(int count)
+    {
+		return base.AllTypes(count - 1);
+    }
+
+	new public string InTypes(int count)
+    {
+		return string.Format("Action<{0}>", base.InTypes(count - 1));
+    }
+}
+
+
+class CurryGen : BaseGen {
+
+	public string OutTypes(int depth, int count = 1) {
+        if (count < depth) {
+			return string.Format("Func<T{0}, {1}>", count, OutTypes(depth, count+1));
+        } else {
+			return string.Format("Func<T{0}, T{1}>", count, count+1);
+        }
+    }
+
+	public string OutArgs(int count)
+    {
+		var stack = List();
+
+        for (int n = 1; n <= count; n++)
+			stack.Add("a{0}", n);
+
+		return Join(stack, separator: " => ");
+    }
+
+}
+
+class ReverseCurryGen : BaseGen {
+
+	public string OutTypes(int maxDepth, int? depth = null) {
+		if (depth == null) depth = maxDepth;
+
+        if (depth >= 2) {
+			return string.Format("Func<T{0}, {1}>", depth, OutTypes(maxDepth, depth-1));
+        } else {
+			return string.Format("Func<T{0}, T{1}>", depth, maxDepth+1);
+        }
+    }
+
+	public string OutArgs(int count)
+    {
+		var stack = List();
+
+        for (int n = count; n >= 1; n--)
+			stack.Add("a{0}", n);
+
+		return Join(stack, separator: " => ");
+    }
+
+}
+
+#>
