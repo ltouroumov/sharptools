@@ -12,20 +12,9 @@ namespace SharpTools.Functional.Option
             throw MakeException("ToValue");
         }
 
-        public virtual Option<B> Bind<B>(Func<A, Option<B>> binder)
-        {
-            throw MakeException("Bind");
-        }
-
-        public virtual Option<A> Bind(Action<A> binder)
-        {
-            throw MakeException("Bind");
-        }
-
-        public virtual Option<B> WhenNothing<B>(Func<Option<B>> binder)
-        {
-            throw MakeException("WhenNothing");
-        }
+        public abstract Option<B> Bind<B>(Func<A, Option<B>> binder);
+        public abstract Option<A> Bind(Action<A> binder);
+        public abstract Option<A> WhenNothing(Action binder);
 
         protected virtual InvalidOperationException MakeException(string method = null)
         {
@@ -68,6 +57,10 @@ namespace SharpTools.Functional.Option
             return this;
         }
 
+        public override Option<A> WhenNothing(Action binder)
+        {
+            return this;
+        }
     }
 
     // <summary>
@@ -87,12 +80,13 @@ namespace SharpTools.Functional.Option
 
         public override Option<A> Bind(Action<A> binder)
         {
-            return Nothing.New<A>();
+            return this;
         }
 
-        public override Option<B> WhenNothing<B>(Func<Option<B>> binder)
+        public override Option<A> WhenNothing(Action binder)
         {
-            return binder();
+            binder();
+            return this;
         }
     }
 
