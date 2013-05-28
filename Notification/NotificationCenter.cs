@@ -42,6 +42,11 @@ namespace SharpTools.Notification
                 OnNotify(sender, notif);
             }
         }
+
+        public static void Post(string name, object sender, object parameter = null)
+        {
+            DefaultCenter[name].Post(sender, parameter);
+        }
     }
 
     public class Notification
@@ -51,7 +56,7 @@ namespace SharpTools.Notification
         public object Parameter { get; internal set; }
     }
 
-    private class NotificationHandler
+    public class NotificationHandler
     {
         private NotificationCenter center;
         public string Name { get; private set; }
@@ -80,6 +85,14 @@ namespace SharpTools.Notification
             if (OnNotify != null) {
                 OnNotify(sender, notif);
             }
+        }
+    }
+
+    public static class NotificationExtensions
+    {
+        public static void PostNotification(this object self, string name, object parameter = null)
+        {
+            NotificationCenter.DefaultCenter[name].Post(self, parameter);
         }
     }
 }
