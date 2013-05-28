@@ -107,6 +107,7 @@
     <None Include="SharpTools.snk" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Notification\NotificationCenter.cs" />
     <Compile Include="Functional\Functional.cs" />
     <Compile Include="Functional\PartialAndCurry.cs">
       <AutoGen>True</AutoGen>
