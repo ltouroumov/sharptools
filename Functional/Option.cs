@@ -1,28 +1,28 @@
 ﻿using System;
 
-namespace SharpTools.Functional.Monads
+namespace SharpTools.Functional.Option
 {
     // <summary>
     // Represents a result with the potential for a value
     // </summary>
-    public abstract class Maybe<A>
+    public abstract class Option<A>
     {
         public virtual A ToValue()
         {
             throw MakeException("ToValue");
         }
 
-        public virtual Maybe<B> Bind<B>(Func<A, Maybe<B>> binder)
+        public virtual Option<B> Bind<B>(Func<A, Option<B>> binder)
         {
             throw MakeException("Bind");
         }
 
-        public virtual Maybe<A> Bind(Action<A> binder)
+        public virtual Option<A> Bind(Action<A> binder)
         {
             throw MakeException("Bind");
         }
 
-        public virtual Maybe<B> WhenNothing<B>(Func<Maybe<B>> binder)
+        public virtual Option<B> WhenNothing<B>(Func<Option<B>> binder)
         {
             throw MakeException("WhenNothing");
         }
@@ -44,10 +44,10 @@ namespace SharpTools.Functional.Monads
     // <summary>
     // Represents the presentce of value
     // </summary>
-    public class Just<A> : Maybe<A>
+    public class Some<A> : Option<A>
     {
         public A Value { get; private set; }
-        public Just(A value)
+        public Some(A value)
         {
             this.Value = value;
         }
@@ -57,98 +57,115 @@ namespace SharpTools.Functional.Monads
             return Value;
         }
 
-        public override Maybe<B> Bind<B>(Func<A, Maybe<B>> binder)
+        public override Option<B> Bind<B>(Func<A, Option<B>> binder)
         {
             return binder(Value);
         }
 
-        public override Maybe<A> Bind(Action<A> binder)
+        public override Option<A> Bind(Action<A> binder)
         {
             binder(Value);
             return this;
         }
+
     }
 
     // <summary>
     // Represents the absence of value
     // </summary>
-    public class Nothing<A> : Maybe<A>
+    public class Nothing<A> : Option<A>
     {
         public override A ToValue()
         {
             throw new InvalidOperationException("A Nothing monad cannot be converted to a value");
         }
 
-        public override Maybe<B> WhenNothing<B>(Func<Maybe<B>> binder)
+        public override Option<B> Bind<B>(Func<A, Option<B>> binder)
+        {
+            return Nothing.New<B>();
+        }
+
+        public override Option<A> Bind(Action<A> binder)
+        {
+            return Nothing.New<A>();
+        }
+
+        public override Option<B> WhenNothing<B>(Func<Option<B>> binder)
         {
             return binder();
         }
     }
 
-    public static partial class Monad
+    public static class Some
     {
-        public static Maybe<A> Nothing<A>()
+        public static Some<A> New<A>(A value)
+        {
+            return new Some<A>(value);
+        }
+    }
+
+    public static class Nothing
+    {
+        public static Nothing<A> New<A>()
         {
             return new Nothing<A>();
         }
+    }
 
-        public static Maybe<A> Just<A>(A value)
+    public static partial class Option
+    {
+        public static Option<A> New<A>(A value)
         {
-            return new Just<A>(value);
+            return New(value, val => val != null);
         }
 
-        public static Maybe<A> Maybe<A>(A value)
-        {
-            return Maybe(value, val => val != null);
-        }
-
-        public static Maybe<A> Maybe<A>(A value, Func<A, bool> discriminator)
+        public static Option<A> New<A>(A value, Func<A, bool> discriminator)
         {
             if (discriminator(value)) {
-                return Just(value);
+                return Some.New(value);
             } else {
-                return Nothing<A>();
+                return Nothing.New<A>();
             }
         }
 
-        public static Func<A, Maybe<A>> Identity<A>()
+        public static Func<A, Option<A>> Identity<A>()
         {
-            return a => Monad.Maybe(a);
+            return a => Option.New(a);
         }
 
-        public static Func<A, Maybe<A>> Void<A>()
+        public static Func<A, Option<A>> Void<A>()
         {
-            return a => Monad.Nothing<A>();
+            return a => Nothing.New<A>();
         }
     }
 
     public static class MonadExtensions
     {
-        public static Maybe<A> ToMaybe<A>(this A self)
+        public static Option<A> ToMaybe<A>(this A self)
         {
-            return Monad.Maybe(self);
+            return Option.New(self);
         }
 
-        public static Maybe<A> ToMaybe<A>(this Maybe<A> self)
+        public static Option<A> ToMaybe<A>(this Option<A> self)
         {
             return self;
         }
 
-        public static A ToValueOrDefault<A>(this Maybe<A> self)
+        public static A ToValueOrDefault<A>(this Option<A> self)
         {
             if (self is Nothing<A>) {
                 return default(A);
             } else {
-                return (self as Just<A>).Value;
+                return (self as Some<A>).Value;
             }
         }
 
-        public static A ToValueOrDefault<A>(this Maybe<A> self, Func<A> provider)
+        public static A ToValueOrDefault<A>(this Option<A> self, Func<A> provider)
         {
             if (self is Nothing<A>) {
                 return provider();
             } else {
-                return (self as Just<A>).Value;
+                return (self as Some<A>).Value;
             }
         }
     }
