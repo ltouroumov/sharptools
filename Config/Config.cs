@@ -9,7 +9,7 @@ using SharpTools.Utils.Collections;
 
 namespace SharpTools.Config
 {
-    class Config : Dictionary<string, string>
+    public class Config : Dictionary<string, string>
     {
         public static Config Load(string path)
         {
@@ -25,6 +25,15 @@ namespace SharpTools.Config
                 });
 
             return config;
+        }
+
+        public string Get(string key, string def)
+        {
+            string value = null;
+            if (TryGetValue(key, out value)) {
+                return value;
+            }
+            return def;
         }
 
         protected class Tuple
