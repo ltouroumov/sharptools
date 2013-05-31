@@ -70,7 +70,9 @@ namespace SharpTools.Functional.Option
     {
         public override A ToValue()
         {
-            throw new InvalidOperationException("A Nothing monad cannot be converted to a value");
+            return null;
+            // This doesnt sound like a good idea
+            // throw new InvalidOperationException("A Nothing monad cannot be converted to a value");
         }
 
         public override Option<B> Bind<B>(Func<A, Option<B>> binder)
