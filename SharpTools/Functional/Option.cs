@@ -2,14 +2,35 @@
 
 namespace SharpTools.Functional.Option
 {
+    public interface IOption<A>
+    {
+        A ToValue();
+        IOption<B> Bind<B>(Func<A, IOption<B>> binder);
+    }
+
+    public interface ISome<A> : IOption<A>
+    {
+        A Value { get; }
+    }
+
+    public interface INothing<A> : IOption<A>
+    {
+
+    }
+
     // <summary>
     // Represents a result with the potential for a value
     // </summary>
-    public abstract class Option<A>
+    public abstract class Option<A> : IOption<A>
     {
         public virtual A ToValue()
         {
             throw MakeException("ToValue");
+        }
+
+        public IOption<B> Bind<B>(Func<A, IOption<B>> binder)
+        {
+            return this.Bind(binder) as IOption<B>;
         }
 
         public abstract Option<B> Bind<B>(Func<A, Option<B>> binder);
@@ -33,7 +54,7 @@ namespace SharpTools.Functional.Option
     // <summary>
     // Represents the presentce of value
     // </summary>
-    public class Some<A> : Option<A>
+    public class Some<A> : Option<A>, ISome<A>
     {
         public A Value { get; private set; }
         public Some(A value)
@@ -66,11 +87,11 @@ namespace SharpTools.Functional.Option
     // <summary>
     // Represents the absence of value
     // </summary>
-    public class Nothing<A> : Option<A>
+    public class Nothing<A> : Option<A>, INothing<A>
     {
         public override A ToValue()
         {
-            return null;
+            return default(A);
             // This doesnt sound like a good idea
             // throw new InvalidOperationException("A Nothing monad cannot be converted to a value");
         }
@@ -145,6 +166,11 @@ namespace SharpTools.Functional.Option
         public static Option<A> ToMaybe<A>(this Option<A> self)
         {
             return self;
+        }
+
+        public static Option<C> BindWith<A, B, C>(this Option<A> option1, Option<B> option2, Func<A, B, Option<C>> binder)
+        {
+            return option1.Bind(val1 => option2.Bind(val2 => binder(val1, val2)));
         }
 
         public static A ToValueOrDefault<A>(this Option<A> self)

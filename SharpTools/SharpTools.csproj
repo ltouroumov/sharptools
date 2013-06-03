@@ -44,7 +44,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PartialAndCurryGenerator.cs</LastGenOutput>
     </None>
-    <None Include="README.md" />
     <None Include="SharpKey.snk" />
   </ItemGroup>
   <ItemGroup>
