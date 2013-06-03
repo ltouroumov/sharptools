@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpTools", "SharpTools\SharpTools.csproj", "{465C8660-1C32-4DE8-8C15-580D9A36D54D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpTools", "SharpTools\SharpTools.csproj", "{E8A80244-0DC4-45CD-84CB-0B15CE79272A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpTests", "SharpTests\SharpTests.csproj", "{A43568A9-429D-4C8F-B8A7-ADAF4FD48C10}"
 EndProject
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{465C8660-1C32-4DE8-8C15-580D9A36D54D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{465C8660-1C32-4DE8-8C15-580D9A36D54D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{465C8660-1C32-4DE8-8C15-580D9A36D54D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{465C8660-1C32-4DE8-8C15-580D9A36D54D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8A80244-0DC4-45CD-84CB-0B15CE79272A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8A80244-0DC4-45CD-84CB-0B15CE79272A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8A80244-0DC4-45CD-84CB-0B15CE79272A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8A80244-0DC4-45CD-84CB-0B15CE79272A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A43568A9-429D-4C8F-B8A7-ADAF4FD48C10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A43568A9-429D-4C8F-B8A7-ADAF4FD48C10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A43568A9-429D-4C8F-B8A7-ADAF4FD48C10}.Release|Any CPU.ActiveCfg = Release|Any CPU
