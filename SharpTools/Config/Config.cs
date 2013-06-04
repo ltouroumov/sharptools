@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using System.Xml;
 using SharpTools.Xml;
 using SharpTools.Utils.Collections;
+using System.Runtime.InteropServices;
 
 namespace SharpTools.Config
 {
+    [ComVisible(false)]
     public class Config : Dictionary<string, string>
     {
         public static Config Load(string path)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Collections.Specialized;
 using System.Net;
+using System.Runtime.InteropServices;
 
 namespace SharpTools.Utils.Web
 {
@@ -12,6 +13,7 @@ namespace SharpTools.Utils.Web
     /// string strQuery = QueryString.Current.Add("id", "179").ToString();
     /// string strQuery = new QueryString().Add("id", "179").ToString();
     /// </summary>
+    [ComVisible(false)]
     public class QueryString : Dictionary<string, string>
     {
         public QueryString() { }
