@@ -32,7 +32,7 @@ namespace SharpTools.Functional
         /// <typeparam name="A">Return and input type</typeparam>
         /// <param name="value">Value to return</param>
         /// <returns>A function</returns>
-        public static Func<A, A> Unit<A>(A value)
+        public static Func<A, A> BlackholeUnit<A>(A value)
         {
             return a => value;
         }
