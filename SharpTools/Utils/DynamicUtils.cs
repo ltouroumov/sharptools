@@ -5,51 +5,20 @@ using System.Reflection;
 
 namespace SharpTools.Utils.Dynamic
 {
-    public class DictionaryProxy<V> : DynamicObject
-        where V : class
-    {
-        public IDictionary<string, V> source { get; private set; }
-
-        public DictionaryProxy(IDictionary<string, V> source = null)
-        {
-            Attach(source);
-        }
-
-        public void Attach(IDictionary<string, V> source)
-        {
-            this.source = source;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
-        {
-            result = null;
-
-            V value;
-            if (source.TryGetValue(binder.Name, out value)) {
-                result = value;
-            }
-
-            return true;
-        }
-
-        public override bool TrySetMember(SetMemberBinder binder, object value)
-        {
-            if (source.Keys.Contains(binder.Name)) {
-                source[binder.Name] = value as V;
-            } else {
-                source.Add(binder.Name, value as V);
-            }
-
-            return true;
-        }
-    }
-
+    /// <summary>
+    /// Dynamic object proxy with returns a default value when the property is not defined
+    /// </summary>
     public class ObjectProxy : DynamicObject
     {
         private dynamic theObject = null;
         private object defaultValue = null;
         private Type theType = null;
 
+        /// <summary>
+        /// Builds a dynamic object proxy.
+        /// </summary>
+        /// <param name="theObject">Object to proxy</param>
+        /// <param name="defaultValue">Default property value</param>
         public ObjectProxy(dynamic theObject, object defaultValue = null)
         {
             this.theObject = theObject;
@@ -65,8 +34,6 @@ namespace SharpTools.Utils.Dynamic
                 result = this.defaultValue;
                 return true;
             }
-
-            var props = theType.GetRuntimeProperties();
 
             var prop = theType.GetRuntimeProperty(binder.Name);
 
