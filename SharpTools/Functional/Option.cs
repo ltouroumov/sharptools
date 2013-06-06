@@ -59,6 +59,12 @@ namespace SharpTools.Functional.Option
             throw MakeException("ToValue");
         }
 
+        /// <summary>
+        /// Implementation of <see cref="IOption.Bind"/>
+        /// </summary>
+        /// <typeparam name="B"></typeparam>
+        /// <param name="binder"></param>
+        /// <returns></returns>
         public IOption<B> Bind<B>(Func<A, IOption<B>> binder)
         {
             return this.Bind(binder) as IOption<B>;
@@ -266,7 +272,7 @@ namespace SharpTools.Functional.Option
         /// <typeparam name="A">Value type</typeparam>
         /// <param name="self">value to wrap</param>
         /// <returns>Wrapped value</returns>
-        public static Option<A> ToMaybe<A>(this A self)
+        public static Option<A> ToOption<A>(this A self)
         {
             return Option.New(self);
         }
@@ -277,7 +283,7 @@ namespace SharpTools.Functional.Option
         /// <typeparam name="A"></typeparam>
         /// <param name="self"></param>
         /// <returns></returns>
-        public static Option<A> ToMaybe<A>(this Option<A> self)
+        public static Option<A> ToOption<A>(this Option<A> self)
         {
             return self;
         }
