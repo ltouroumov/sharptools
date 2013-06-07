@@ -4,6 +4,7 @@ using System.Text;
 using System.Xml;
 using SharpTools.Functional;
 using SharpTools.Functional.Option;
+using SharpTools.Utils.Collections;
 
 namespace SharpTools.Xml
 {
@@ -94,6 +95,28 @@ namespace SharpTools.Xml
         public static Option<T> ObjectNodeWithContent<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<string, T> text)
         {
             return self.ObjectNode(nodeName, FunctionsBuilder.MakeTextReaderBuilder(builder, text));
+        }
+    }
+
+    public static class ObjectNodes
+    {
+        /// <summary>
+        /// Provides a function that returns an empty list. Can be used with <see cref="Option.Fallback"/> when an empty list is not considered a <see cref="Nothing"/>.
+        /// </summary>
+        public static Func<Option<IList<T>>> EmptyList<T>()
+        {
+            return () => Option.Some(Collections.IList<T>());
+        }
+
+        /// <summary>
+        /// Provides a function that returns an empty object. Can be used with <see cref="Option.Fallback"/> when an empty object is not considered a <see cref="Nothing"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static Func<Option<T>> Empty<T>()
+            where T : class, new()
+        {
+            return () => Option.Some(new T());
         }
     }
 }

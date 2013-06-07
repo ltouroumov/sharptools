@@ -237,10 +237,29 @@ namespace SharpTools.Functional.Option
         public static Option<A> New<A>(A value, Func<A, bool> discriminator)
         {
             if (discriminator(value)) {
-                return Some.New(value);
+                return Some(value);
             } else {
-                return Nothing.New<A>();
+                return Nothing<A>();
             }
+        }
+
+        /// <summary>
+        /// Create a new Some<A> boxed as Option<A>
+        /// </summary>
+        /// <typeparam name="A">Wrapped value type</typeparam>
+        /// <param name="value">Value to wrap</param>
+        public static Option<A> Some<A>(A value)
+        {
+            return SharpTools.Functional.Option.Some.New(value);
+        }
+
+        /// <summary>
+        /// Create a new Nothing<A> boxed as Option<A>
+        /// </summary>
+        /// <typeparam name="A">Wrapped value type</typeparam>
+        public static Option<A> Nothing<A>()
+        {
+            return SharpTools.Functional.Option.Nothing.New<A>();
         }
 
         /// <summary>
@@ -260,7 +279,7 @@ namespace SharpTools.Functional.Option
         /// <returns>Function that returns Nothing</returns>
         public static Func<A, Option<A>> Void<A>()
         {
-            return a => Nothing.New<A>();
+            return a => Nothing<A>();
         }
     }
 
