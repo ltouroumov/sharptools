@@ -1,8 +1,9 @@
 ﻿using System;
+using SharpTools.Functional.Matchable;
 
 namespace SharpTools.Functional.Option
 {
-    public interface IOption<A>
+    public interface IOption<A>, IMatchable<A, A>
     {
         A ToValue();
         IOption<B> Bind<B>(Func<A, IOption<B>> binder);
@@ -48,6 +49,11 @@ namespace SharpTools.Functional.Option
             }
 
             return new InvalidOperationException(message);
+        }
+
+        public void Match(Action<A> func1, Action<A> func2)
+        {
+            this.WhenNothing(() => func2(default(A))).Bind(func1);
         }
     }
 

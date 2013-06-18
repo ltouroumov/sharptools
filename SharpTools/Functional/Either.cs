@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpTools.Functional.Matchable;
 
 namespace SharpTools.Functional.Either
 {
@@ -13,18 +14,41 @@ namespace SharpTools.Functional.Either
         bool Right(out B value);
     }
 
-    abstract public class Either<A, B>
+    abstract public class Either<A, B>, IMatchable<A, B>
     {
-        public bool Left(out A value)
+        virtual public bool Left(out A value)
         {
             value = default(A);
             return false;
         }
 
-        public bool Right(out B value)
+        virtual public bool Right(out B value)
         {
             value = default(B);
             return false;
+        }
+
+        public Either<A, B> WhenLeft(Action<A> func)
+        {
+            A value = default(A);
+            if (Left(out value))
+                func(value);
+
+            return this;
+        }
+
+        public Either<A, B> WhenRight(Action<B> func)
+        {
+            B value = default(B);
+            if (Right(out value))
+                func(value);
+
+            return this;
+        }
+
+        public void Match(Action<A> func1, Action<B> func2)
+        {
+            this.WhenLeft(func1).WhenRight(func2);
         }
     }
 
