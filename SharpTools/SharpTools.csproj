@@ -49,7 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\Config.cs" />
+    <Compile Include="Functional\Either.cs" />
     <Compile Include="Functional\Functional.cs" />
+    <Compile Include="Functional\Matchable.cs" />
     <Compile Include="Functional\Option.cs" />
     <Compile Include="Functional\PartialAndCurryGenerator.cs">
       <AutoGen>True</AutoGen>
