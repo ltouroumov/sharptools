@@ -12,11 +12,11 @@ namespace SharpTools.Functional
     {
 		<# var rgen = new RightGen(); #>
 		<# for(var argNum = 1; argNum <= 8; argNum++) {
-		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
-		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
-		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
-		// See LeftPartial for opposite order.
-		// </summary>
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>/// <summary>
+		/// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		/// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		/// See LeftPartial for opposite order.
+		/// </summary>
 		public static Func<<#= rgen.OutTypes(argNum, reduceCount) #>>
 			Partial<<#= rgen.AllTypes(argNum) #>>(this Func<<#= rgen.InTypes(argNum) #>> func, <#= rgen.InArgs(argNum, reduceCount) #>)
 		{
@@ -30,11 +30,11 @@ namespace SharpTools.Functional
     {
 		<# var lgen = new LeftGen(); #>
 		<# for(var argNum = 1; argNum <= 8; argNum++) {
-		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
-		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
-		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
-		// See LeftPartial for opposite order.
-		// </summary>
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>/// <summary>
+		/// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		/// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		/// See LeftPartial for opposite order.
+		/// </summary>
 		public static Func<<#= lgen.OutTypes(argNum, reduceCount) #>>
 			LeftPartial<<#= lgen.AllTypes(argNum) #>>(this Func<<#= lgen.InTypes(argNum) #>> func, <#= lgen.InArgs(argNum, reduceCount) #>)
 		{
@@ -48,11 +48,11 @@ namespace SharpTools.Functional
     {
 		<# var argen = new ActionRightGen(); #>
 		<# for(var argNum = 1; argNum <= 8; argNum++) {
-		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
-		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
-		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
-		// See LeftPartial for opposite order.
-		// </summary>
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>/// <summary>
+		/// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		/// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		/// See LeftPartial for opposite order.
+		/// </summary>
 		public static <#= argen.OutTypes(argNum, reduceCount) #>
 			Partial<<#= argen.AllTypes(argNum) #>>(this <#= argen.InTypes(argNum) #> func, <#= argen.InArgs(argNum, reduceCount) #>)
 		{
@@ -66,11 +66,11 @@ namespace SharpTools.Functional
     {
 		<# var algen = new ActionLeftGen(); #>
 		<# for(var argNum = 1; argNum <= 8; argNum++) {
-		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>// <summary>
-		// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
-		// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
-		// See LeftPartial for opposite order.
-		// </summary>
+		   for(var reduceCount = 1; reduceCount <= argNum; reduceCount++) { #>/// <summary>
+		/// Allows to partially apply a function (applies <#= reduceCount #> arguments out of <#= argNum #>).
+		/// Right partial application happens in reverse order, meaning that it removes the last parameter of the function.
+		/// See LeftPartial for opposite order.
+		/// </summary>
 		public static <#= algen.OutTypes(argNum, reduceCount) #>
 			LeftPartial<<#= algen.AllTypes(argNum) #>>(this <#= algen.InTypes(argNum) #> func, <#= algen.InArgs(argNum, reduceCount) #>)
 		{
@@ -83,9 +83,9 @@ namespace SharpTools.Functional
 	public static class FuncLeftCurryExtensions
     {
 		<# var cgen = new CurryGen(); #>
-		<# for(var argNum = 2; argNum < 8; argNum++) { #>// <summary>
-		// Allows to curry a function with ordered parameter application.
-		// </summary>
+		<# for(var argNum = 2; argNum < 8; argNum++) { #>/// <summary>
+		/// Allows to curry a function with ordered parameter application.
+		/// </summary>
         public static <#= cgen.OutTypes(argNum) #>
 			Curry<<#= cgen.AllTypes(argNum) #>>(this Func<<#= cgen.InTypes(argNum) #>> func)
         {
@@ -98,9 +98,9 @@ namespace SharpTools.Functional
 	public static class FuncRightCurryExtensions
     {
 		<# var rcgen = new ReverseCurryGen(); #>
-		<# for(var argNum = 2; argNum < 8; argNum++) { #>// <summary>
-		// Allows to curry a function with reverse order parameter application.
-		// </summary>
+		<# for(var argNum = 2; argNum < 8; argNum++) { #>/// <summary>
+		/// Allows to curry a function with reverse order parameter application.
+		/// </summary>
         public static <#= rcgen.OutTypes(argNum) #>
 			ReverseCurry<<#= rcgen.AllTypes(argNum) #>>(this Func<<#= rcgen.InTypes(argNum) #>> func)
         {

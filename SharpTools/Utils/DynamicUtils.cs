@@ -2,58 +2,28 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
+using SharpTools.Functional;
 
 namespace SharpTools.Utils.Dynamic
 {
-    public class DictionaryProxy<V> : DynamicObject
-        where V : class
-    {
-        public IDictionary<string, V> source { get; private set; }
-
-        public DictionaryProxy(IDictionary<string, V> source = null)
-        {
-            Attach(source);
-        }
-
-        public void Attach(IDictionary<string, V> source)
-        {
-            this.source = source;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
-        {
-            result = null;
-
-            V value;
-            if (source.TryGetValue(binder.Name, out value)) {
-                result = value;
-            }
-
-            return true;
-        }
-
-        public override bool TrySetMember(SetMemberBinder binder, object value)
-        {
-            if (source.Keys.Contains(binder.Name)) {
-                source[binder.Name] = value as V;
-            } else {
-                source.Add(binder.Name, value as V);
-            }
-
-            return true;
-        }
-    }
-
+    /// <summary>
+    /// Dynamic object proxy which invokes a callback to get a default value when the property is not defined
+    /// </summary>
     public class ObjectProxy : DynamicObject
     {
         private dynamic theObject = null;
-        private object defaultValue = null;
+        private Func<string, object> defaultValueProvider = null;
         private Type theType = null;
 
-        public ObjectProxy(dynamic theObject, object defaultValue = null)
+        /// <summary>
+        /// Builds a dynamic object proxy.
+        /// </summary>
+        /// <param name="theObject">Object to proxy</param>
+        /// <param name="defaultValueProvider">Default property value provider function</param>
+        public ObjectProxy(dynamic theObject, Func<string, object> defaultValueProvider = null)
         {
             this.theObject = theObject;
-            this.defaultValue = defaultValue;
+            this.defaultValueProvider = defaultValueProvider;
             if (theObject != null) {
                 this.theType = (theObject as object).GetType();
             }
@@ -61,12 +31,12 @@ namespace SharpTools.Utils.Dynamic
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
+            var defaultValue = this.defaultValueProvider.Partial(binder.Name);
+
             if (theObject == null) {
-                result = this.defaultValue;
+                result = defaultValue();
                 return true;
             }
-
-            var props = theType.GetRuntimeProperties();
 
             var prop = theType.GetRuntimeProperty(binder.Name);
 
@@ -75,7 +45,7 @@ namespace SharpTools.Utils.Dynamic
                 return true;
             }
 
-            result = this.defaultValue;
+            result = defaultValue();
             return true;
         }
     }

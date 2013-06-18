@@ -9,6 +9,10 @@ namespace SharpTools.Xml
 {
     public static class TextPrimitivesExtension
     {
+        /// <summary>
+        /// Reads all contiguos text nodes and returns their value.
+        /// </summary>
+        /// <returns>Some(Text value)</returns>
         public static Option<string> ReadText(this XmlReader self)
         {
             if (self.NodeType != XmlNodeType.Text) return Nothing.New<string>();
@@ -18,9 +22,18 @@ namespace SharpTools.Xml
                 x => x.NodeType != XmlNodeType.Text,
                 x => sb.Append(x.Value));
 
-            return sb.ToString().ToMaybe();
+            return sb.ToString().ToOption();
         }
 
+        /// <summary>
+        /// Reads the text content of a named node and return its value.
+        /// This method returns a Nothing object if the cursor is not on the start of the node.
+        /// A transformer method must be supplied to parse the returned text.
+        /// </summary>
+        /// <typeparam name="A">Type of the contents</typeparam>
+        /// <param name="nodeName">Name of the node</param>
+        /// <param name="transformer">Text parser</param>
+        /// <returns>Some(Parsed value) | Nothing</returns>
         public static Option<A> ScalarNode<A>(this XmlReader self, string nodeName, Func<string, A> transformer)
         {
             if (!self.IsElement(nodeName) || self.IsEmptyElement) return Nothing.New<A>();
@@ -31,9 +44,14 @@ namespace SharpTools.Xml
                 x => buffer.Append(x.Value));
 
             var returnValue = buffer.ToString();
-            return transformer(returnValue).ToMaybe();
+            return transformer(returnValue).ToOption();
         }
 
+        /// <summary>
+        /// Runs the <see cref="ScalarNode"/> method and returns the raw string contents.
+        /// </summary>
+        /// <param name="nodeName">Name of the node</param>
+        /// <returns>Some(Text value) | Nothing</returns>
         public static Option<string> ScalarNode(this XmlReader self, string nodeName)
         {
             return ScalarNode<string>(self, nodeName, Function.Identity<string>());
