@@ -8,13 +8,32 @@ using SharpTools.Functional.Matchable;
 
 namespace SharpTools.Functional.Either
 {
+    /// <summary>
+    /// Binary value container to allow distinct return types
+    /// </summary>
+    /// <typeparam name="A">Left branch type</typeparam>
+    /// <typeparam name="B">Right branch type</typeparam>
     interface IEither<A, B>
     {
+        /// <summary>
+        /// Check and get the left value
+        /// </summary>
+        /// <param name="value">Left value</param>
+        /// <returns>Left value exists</returns>
         bool Left(out A value);
+
+        /// <summary>
+        /// Check and get the left value
+        /// </summary>
+        /// <param name="value">Right value</param>
+        /// <returns>Right value exists</returns>
         bool Right(out B value);
     }
 
-    abstract public class Either<A, B>, IMatchable<A, B>
+    /// <summary>
+    /// Default implementation of the IEither interface
+    /// </summary>
+    abstract public class Either<A, B> : IEither<A, B>, IMatchable<A, B>
     {
         virtual public bool Left(out A value)
         {
@@ -28,42 +47,139 @@ namespace SharpTools.Functional.Either
             return false;
         }
 
-        public Either<A, B> WhenLeft(Action<A> func)
-        {
-            A value = default(A);
-            if (Left(out value))
-                func(value);
-
-            return this;
-        }
-
-        public Either<A, B> WhenRight(Action<B> func)
-        {
-            B value = default(B);
-            if (Right(out value))
-                func(value);
-
-            return this;
-        }
-
         public void Match(Action<A> func1, Action<B> func2)
         {
             this.WhenLeft(func1).WhenRight(func2);
         }
     }
 
+    public static class EitherExtensions
+    {
+        /// <summary>
+        /// Will call func if the left value is defined
+        /// </summary>
+        public static IEither<A, B> WhenLeft<A, B>(this IEither<A, B> self, Action<A> func)
+        {
+            A value = default(A);
+            if (self.Left(out value))
+                func(value);
+
+            return self;
+        }
+
+        /// <summary>
+        /// Will call func if the right value is defined
+        /// </summary>
+        public static IEither<A, B> WhenRight<A, B>(this IEither<A, B> self, Action<B> func)
+        {
+            B value = default(B);
+            if (self.Right(out value))
+                func(value);
+
+            return self;
+        }
+
+        internal static IEither<A, B> WhenBoth<A, B>(this IEither<A, B> self, Action<A, B> func)
+        {
+            var both = self as Both<A, B>;
+            if (both != null)
+            {
+                var a = both.left;
+                var b = both.right;
+                func(a, b);
+            }
+
+            return self;
+        }
+
+        /// <summary>
+        /// Flips the two operands of a IEither
+        /// </summary>
+        public static IEither<B, A> Flip<A, B>(this IEither<A, B> self)
+        {
+            var other = new None<B, A>() as IEither<B, A>;
+
+            self.WhenLeft(left => other = new Right<B, A>(left))
+                .WhenRight(right => other = new Left<B, A>(right))
+                .WhenBoth((l, r) => other = new Both<B, A>(r, l));
+
+            return other;
+        }
+    }
+
+    public class Left<A, B> : Either<A, B>
+    {
+        public A value { get; private set; }
+
+        public Left(A value)
+        {
+            this.value = value;
+        }
+
+        public override bool Left(out A value)
+        {
+            value = this.value;
+            return true;
+        }
+    }
+
+    public class Right<A, B> : Either<A, B>
+    {
+        public B value { get; private set; }
+
+        public Right(B value)
+        {
+            this.value = value;
+        }
+
+        public override bool Right(out B value)
+        {
+            value = this.value;
+            return true;
+        }
+    }
+
+    public class Both<A, B> : Either<A, B>
+    {
+        public A left { get; private set; }
+        public B right { get; private set; }
+
+        public Both(A left, B right)
+        {
+            this.left = left;
+            this.right = right;
+        }
+
+        public override bool Left(out A value)
+        {
+            value = this.left;
+            return true;
+        }
+
+        public override bool Right(out B value)
+        {
+            value = this.right;
+            return true;
+        }
+    }
+
+    public class None<A, B> : Either<A, B>
+    {
+        public override bool Left(out A value)
+        {
+            value = default(A);
+            return false;
+        }
+
+        public override bool Right(out B value)
+        {
+            value = default(B);
+            return false;
+        }
+    }
+
     public static class Either
     {
-        public static Either<A, B> Left<A, B>(A left)
-        {
-            return new Left<A, B>(left);
-        }
-
-        public static Either<A, B> Right<A, B>(B right)
-        {
-            return new Right<A, B>(right);
-        }
-
         public static EitherBuilder<A> AsLeft<A>(this A left)
         {
             return new EitherBuilder<A>(left);
@@ -92,38 +208,6 @@ namespace SharpTools.Functional.Either
         public Either<B, A> WithLeft<B>()
         {
             return new Right<B, A>(first);
-        }
-    }
-
-    public class Left<A, B> : Either<A, B>
-    {
-        private A value = default(A);
-
-        public Left(A value)
-        {
-            this.value = value;
-        }
-
-        public override bool Left(out A value)
-        {
-            value = this.value;
-            return true;
-        }
-    }
-
-    public class Right<A, B> : Either<A, B>
-    {
-        private B value = default(B);
-
-        public Right(B value)
-        {
-            this.value = value;
-        }
-
-        public override bool Right(out B value)
-        {
-            value = this.value;
-            return true;
         }
     }
 }
