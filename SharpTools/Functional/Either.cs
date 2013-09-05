@@ -13,21 +13,21 @@ namespace SharpTools.Functional.Either
     /// </summary>
     /// <typeparam name="A">Left branch type</typeparam>
     /// <typeparam name="B">Right branch type</typeparam>
-    interface IEither<A, B>
+    public interface IEither<A, B>
     {
         /// <summary>
         /// Check and get the left value
         /// </summary>
         /// <param name="value">Left value</param>
         /// <returns>Left value exists</returns>
-        bool Left(out A value);
+        bool AsLeft(out A value);
 
         /// <summary>
         /// Check and get the left value
         /// </summary>
         /// <param name="value">Right value</param>
         /// <returns>Right value exists</returns>
-        bool Right(out B value);
+        bool AsRight(out B value);
     }
 
     /// <summary>
@@ -35,13 +35,13 @@ namespace SharpTools.Functional.Either
     /// </summary>
     abstract public class Either<A, B> : IEither<A, B>, IMatchable<A, B>
     {
-        virtual public bool Left(out A value)
+        virtual public bool AsLeft(out A value)
         {
             value = default(A);
             return false;
         }
 
-        virtual public bool Right(out B value)
+        virtual public bool AsRight(out B value)
         {
             value = default(B);
             return false;
@@ -61,7 +61,7 @@ namespace SharpTools.Functional.Either
         public static IEither<A, B> WhenLeft<A, B>(this IEither<A, B> self, Action<A> func)
         {
             A value = default(A);
-            if (self.Left(out value))
+            if (self.AsLeft(out value))
                 func(value);
 
             return self;
@@ -73,7 +73,7 @@ namespace SharpTools.Functional.Either
         public static IEither<A, B> WhenRight<A, B>(this IEither<A, B> self, Action<B> func)
         {
             B value = default(B);
-            if (self.Right(out value))
+            if (self.AsRight(out value))
                 func(value);
 
             return self;
@@ -116,7 +116,7 @@ namespace SharpTools.Functional.Either
             this.value = value;
         }
 
-        public override bool Left(out A value)
+        public override bool AsLeft(out A value)
         {
             value = this.value;
             return true;
@@ -132,7 +132,7 @@ namespace SharpTools.Functional.Either
             this.value = value;
         }
 
-        public override bool Right(out B value)
+        public override bool AsRight(out B value)
         {
             value = this.value;
             return true;
@@ -150,13 +150,13 @@ namespace SharpTools.Functional.Either
             this.right = right;
         }
 
-        public override bool Left(out A value)
+        public override bool AsLeft(out A value)
         {
             value = this.left;
             return true;
         }
 
-        public override bool Right(out B value)
+        public override bool AsRight(out B value)
         {
             value = this.right;
             return true;
@@ -165,13 +165,13 @@ namespace SharpTools.Functional.Either
 
     public class None<A, B> : Either<A, B>
     {
-        public override bool Left(out A value)
+        public override bool AsLeft(out A value)
         {
             value = default(A);
             return false;
         }
 
-        public override bool Right(out B value)
+        public override bool AsRight(out B value)
         {
             value = default(B);
             return false;

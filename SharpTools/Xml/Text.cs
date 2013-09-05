@@ -57,5 +57,13 @@ namespace SharpTools.Xml
             return ScalarNode<string>(self, nodeName, Function.Identity<string>());
         }
 
+		public static Option<A> ScalarAttribute<A>(this XmlReader self, string attrName, Func<string, A> transformer)
+		{
+			var attrValue = self.GetAttribute(attrName);
+			if (attrValue != null) {
+				return Option.Some(transformer(attrValue));
+			}
+			return Option.Nothing<A>();
+		}
     }
 }

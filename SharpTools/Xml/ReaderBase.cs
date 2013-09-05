@@ -31,8 +31,6 @@ namespace SharpTools.Xml
         {
             if (!self.IsElement(nodeName)) return;
 
-            var currentDepth = self.Depth;
-
             var guard = self.MakeElementScannerGuard();
             while (self.Read()) {
                 // Double guard condition
@@ -43,6 +41,13 @@ namespace SharpTools.Xml
                 if (guard(self)) break;
             }
         }
+
+		public static XmlReader ReadNodeHead(this XmlReader self, string nodeName, Action<XmlReader> reader)
+		{
+			if (self.IsElement(nodeName))
+				reader(self);
+			return self;
+		}
 
         /// <summary>
         /// Will read the current node, works the same as <see cref="ReadNode"/>.

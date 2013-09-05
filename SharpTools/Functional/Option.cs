@@ -7,7 +7,7 @@ namespace SharpTools.Functional.Option
     /// Base interface for the Option type. Allows other types to act as an option type without extending the base class
     /// </summary>
     /// <typeparam name="A">Type of the wrapped value</typeparam>
-    public interface IOption<A>, IMatchable<A, A>
+    public interface IOption<A> : IMatchable<A, A>
     {
         /// <summary>
         /// Converts the Option type to a value.
