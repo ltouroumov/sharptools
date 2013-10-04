@@ -23,7 +23,7 @@ namespace SharpTools.Xml
                 var item = builder(xml);
                 if (text != null) {
                     xml.ReadCurrentNode(reader => {
-                        reader.ReadText().Bind(text.Partial(item));
+                        reader.ReadText().MatchSome(text.Partial(item));
                     });
                 }
                 return item;

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using SharpTools.Xml;
 using SharpTools.Utils.Collections;
+using SharpTools.Functional.Option;
 using System.Runtime.InteropServices;
 
 namespace SharpTools.Config
@@ -36,10 +37,10 @@ namespace SharpTools.Config
             // Read all first level '<Parameter Name="key">val</...>' nodes
             reader.ObjectNodeList("Parameter",
                 (x) => new Tuple() { Key = x.GetAttribute("Name") },
-                (x, node) => x.ReadText().Bind(val => node.Val = val))
-                .Bind(list => {
-                    list.ForEach(t => config.Add(t.Key, t.Val));
-                });
+                (x, node) => x.ReadText().MatchSome(val => node.Val = val)
+			).MatchSome(list => {
+                list.ForEach(t => config.Add(t.Key, t.Val));
+            });
 
             return config;
         }

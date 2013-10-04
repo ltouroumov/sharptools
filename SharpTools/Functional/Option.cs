@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using SharpTools.Functional.Matchable;
 
 namespace SharpTools.Functional.Option
@@ -7,190 +10,196 @@ namespace SharpTools.Functional.Option
     /// Base interface for the Option type. Allows other types to act as an option type without extending the base class
     /// </summary>
     /// <typeparam name="A">Type of the wrapped value</typeparam>
-    public interface IOption<A> : IMatchable<A, A>
+    public interface IOption<A> : IEnumerable<A>
     {
-        /// <summary>
-        /// Converts the Option type to a value.
-        /// </summary>
-        /// <returns>Wrapped value</returns>
-        /// <exception cref="InvalidOperationException" />
-        A ToValue();
+		/// <summary>
+		/// Gets underlyig the value.
+		/// </summary>
+		/// <exception cref="InvalidOperationException">If IsDefined is false</exception>
+		/// <value>The underlying value.</value>
+		A Value { get; }
+
+		/// <summary>
+		/// Determines whether this instance is defined.
+		/// </summary>
+		/// <returns><c>true</c> if this instance is defined; otherwise, <c>false</c>.</returns>
+		bool IsDefined { get; }
+
+		/// <summary>
+		/// Provides an alternative when this option is not defined
+		/// </summary>
+		/// <returns>The option OR the alternative if it is not defined</returns>
+		/// <param name="alternative">The alternative provider</param>
+		IOption<A> OrElse(Func<IOption<A>> alternative);
+
+		/// <summary>
+		/// Returns null when the Option is not defined
+		/// </summary>
+		/// <returns>value OR null</returns>
+		A OrNull();
+
+		/// <summary>
+		/// Fold the Option type, retreiving a value.
+		/// </summary>
+		/// <param name="alternative">Alternative provider</param>
+		/// <param name="mapper">Mapper function</param>
+		B Fold<B>(Func<B> alternative, Func<A, B> mapper);
+
+		/// <summary>
+		/// Filter the option returning itself OR None.
+		/// </summary>
+		/// <param name="filter">Filtering function</param>
+		IOption<A> Filter(Func<A, bool> filter);
 
         /// <summary>
         /// Binds the Option type.
-        /// When the type is ISome the binder is called and expects an Option as an output.
-        /// When the type is INothing the binder is NOT called and instead a INothing of the new type is returned
+        /// When the type is Some the binder is called and expects an Option as an output.
+        /// When the type is Nothing the binder is NOT called and instead a None of the new type is returned
         /// </summary>
         /// <typeparam name="B">Return type of the binder function</typeparam>
-        /// <param name="binder">Function to be called when the value is ISome</param>
+        /// <param name="binder">Function to be called when the value is Some</param>
         /// <returns>New Option type</returns>
-        IOption<B> Bind<B>(Func<A, IOption<B>> binder);
-    }
+        IOption<B> FlatMap<B>(Func<A, IOption<B>> mapper);
 
-    /// <summary>
-    /// Objects that implement this interface are an option type which carry a value
-    /// </summary>
-    /// <typeparam name="A"></typeparam>
-    public interface ISome<A> : IOption<A>
-    {
-        /// <summary>
-        /// Value wrapped by the option type
-        /// </summary>
-        A Value { get; }
-    }
+		/// <summary>
+		/// Binds the Option type.
+		/// When the type is Some the mapper is called and expects an result as an output.
+		/// When the type is Nothing the mapper is NOT called and instead a None of the new type is returned
+		/// </summary>
+		/// <typeparam name="B">Return type of the mapper function</typeparam>
+		/// <param name="binder">Function to be called when the value is Some</param>
+		/// <returns>New Option type</returns>
+		IOption<B> Map<B>(Func<A, B> mapper);
 
-
-    /// <summary>
-    /// Objects that implement this interface are an option type which carries no value.
-    /// </summary>
-    /// <typeparam name="A"></typeparam>
-    public interface INothing<A> : IOption<A>
-    {
-
+		IOption<A> MatchSome(Action<A> func);
+		IOption<A> MatchNone(Action func);
     }
 
     /// <summary>
     /// Concrete implementation of the IOption type.
     /// </summary>
     /// <typeparam name="A"><see cref="IOption"/></typeparam>
-    public abstract class Option<A> : IOption<A>
+    internal class Option<A> : IOption<A>
     {
-        public virtual A ToValue()
-        {
-            throw MakeException("ToValue");
-        }
+		private A _value = default(A);
+		private bool _hasValue = false;
 
-        /// <summary>
-        /// Implementation of <see cref="IOption.Bind"/>
-        /// </summary>
-        /// <typeparam name="B"></typeparam>
-        /// <param name="binder"></param>
-        /// <returns></returns>
-        public IOption<B> Bind<B>(Func<A, IOption<B>> binder)
-        {
-            return this.Bind(binder) as IOption<B>;
-        }
+		public Option()
+		{
+			_hasValue = false;
+		}
 
-        /// <summary>
-        /// Works the same as <see cref="IOption.Bind"/>
-        /// </summary>
-        /// <typeparam name="B">New wrapped value</typeparam>
-        /// <param name="binder">Binding callback</param>
-        /// <returns>New Option type</returns>
-        public abstract Option<B> Bind<B>(Func<A, Option<B>> binder);
+		public Option(A value)
+		{
+			_value = value;
+			_hasValue = true;
+		}
 
-        /// <summary>
-        /// Binds a void function and returns self.
-        /// </summary>
-        /// <param name="binder">Binding callback</param>
-        /// <returns>self</returns>
-        public abstract Option<A> Bind(Action<A> binder);
+		public bool IsDefined
+		{
+			get { return _hasValue; }
+		}
 
-        /// <summary>
-        /// This method is the reverse of Bind, the binder is invoked when INothing is encountered.
-        /// </summary>
-        /// <param name="binder">Binding callback</param>
-        /// <returns>self</returns>
-        public abstract Option<A> WhenNothing(Action binder);
+		public A Value
+		{
+			get { return GetValueOrException(); }
+		}
 
-        /// <summary>
-        /// This method is tasked to provide a fallback value in case it encounters a Nothing value.
-        /// </summary>
-        /// <param name="binder">Value provider</param>
-        /// <returns>A value</returns>
-        public abstract Option<A> Fallback(Func<Option<A>> binder);
+		private A GetValueOrException()
+		{
+			if (IsDefined) {
+				return _value;
+			} else {
+				throw new InvalidOperationException("This option type has no value");
+			}
+		}
 
-        protected virtual InvalidOperationException MakeException(string method = null)
-        {
-            Type type = this.GetType();
-            string message;
-            if (method != null) {
-                message = string.Format("Maybe({0}) does not support {1}", type.Name, method);
-            } else {
-                message = string.Format("Invalid operation on Maybe({0})", type.Name);
-            }
+		public IOption<A> OrElse(Func<IOption<A>> alternative)
+		{
+			if (IsDefined) {
+				return this;
+			} else {
+				return alternative();
+			}
+		}
 
-            return new InvalidOperationException(message);
-        }
+		public A OrNull()
+		{
+			if (IsDefined) {
+				return _value;
+			} else {
+				return default(A);
+			}
+		}
 
-        public void Match(Action<A> func1, Action<A> func2)
-        {
-            this.WhenNothing(() => func2(default(A))).Bind(func1);
-        }
-    }
+		public B Fold<B>(Func<B> alternative, Func<A, B> mapper)
+		{
+			if (IsDefined) {
+				return mapper(_value);
+			} else {
+				return alternative();
+			}
+		}
 
-    /// <summary>
-    /// Implementation of Option and ISome
-    /// </summary>
-    /// <typeparam name="A">Wrapped value</typeparam>
-    public class Some<A> : Option<A>, ISome<A>
-    {
-        public A Value { get; private set; }
-        public Some(A value)
-        {
-            this.Value = value;
-        }
+		public IOption<A> Filter(Func<A, bool> filter)
+		{
+			if (IsDefined) {
+				if (filter(_value)) {
+					return this;
+				} else {
+					return new Option<A>();
+				}
+			} else {
+				return this;
+			}
+		}
 
-        public override A ToValue()
-        {
-            return Value;
-        }
+		public IOption<B> FlatMap<B>(Func<A, IOption<B>> mapper)
+		{
+			if (IsDefined) {
+				return mapper(_value);
+			} else {
+				return new Option<B>();
+			}
+		}
 
-        public override Option<B> Bind<B>(Func<A, Option<B>> binder)
-        {
-            return binder(Value);
-        }
+		public IOption<B> Map<B>(Func<A, B> mapper)
+		{
+			if (IsDefined) {
+				var newVal = mapper(_value);
+				return new Option<B>(newVal);
+			} else {
+				return new Option<B>();
+			}
+		}
 
-        public override Option<A> Bind(Action<A> binder)
-        {
-            binder(Value);
-            return this;
-        }
+		public IOption<A> MatchSome(Action<A> func)
+		{
+			if (IsDefined)
+				func(_value);
 
-        // Polymorphism is awesome
-        public override Option<A> WhenNothing(Action binder)
-        {
-            return this;
-        }
+			return this;
+		}
 
-        public override Option<A> Fallback(Func<Option<A>> binder)
-        {
-            return this;
-        }
-    }
+		public IOption<A> MatchNone(Action func)
+		{
+			if (!IsDefined)
+				func();
 
-    /// <summary>
-    /// Implementation of Option and INothing
-    /// </summary>
-    /// <typeparam name="A">Wrapped value</typeparam>
-    public class Nothing<A> : Option<A>, INothing<A>
-    {
-        public override A ToValue()
-        {
-            // Return the default value for the wrapped type
-            return default(A);
-        }
+			return this;
+		}
 
-        public override Option<B> Bind<B>(Func<A, Option<B>> binder)
-        {
-            return Nothing.New<B>();
-        }
+		public IEnumerator<A> GetEnumerator()
+		{
+			if (IsDefined) {
+				yield return _value;
+			}
+		}
 
-        public override Option<A> Bind(Action<A> binder)
-        {
-            return this;
-        }
-
-        public override Option<A> WhenNothing(Action binder)
-        {
-            binder();
-            return this;
-        }
-
-        public override Option<A> Fallback(Func<Option<A>> binder)
-        {
-            return binder();
-        }
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return (IEnumerator)GetEnumerator();
+		}
     }
 
     /// <summary>
@@ -198,9 +207,9 @@ namespace SharpTools.Functional.Option
     /// </summary>
     public static class Some
     {
-        public static Some<A> New<A>(A value)
+        public static IOption<A> New<A>(A value)
         {
-            return new Some<A>(value);
+            return new Option<A>(value);
         }
     }
 
@@ -209,9 +218,9 @@ namespace SharpTools.Functional.Option
     /// </summary>
     public static class Nothing
     {
-        public static Nothing<A> New<A>()
+        public static IOption<A> New<A>()
         {
-            return new Nothing<A>();
+            return new Option<A>();
         }
     }
 
@@ -227,7 +236,7 @@ namespace SharpTools.Functional.Option
         /// <typeparam name="A">Wrapped value type</typeparam>
         /// <param name="value">Value to wrap</param>
         /// <returns>Wrapped value</returns>
-        public static Option<A> New<A>(A value)
+        public static IOption<A> New<A>(A value)
         {
             return New(value, val => val != null);
         }
@@ -240,7 +249,7 @@ namespace SharpTools.Functional.Option
         /// <param name="value">Value to wrap</param>
         /// <param name="discriminator">Discriminator function</param>
         /// <returns>Wrapped value</returns>
-        public static Option<A> New<A>(A value, Func<A, bool> discriminator)
+        public static IOption<A> New<A>(A value, Func<A, bool> discriminator)
         {
             if (discriminator(value)) {
                 return Some(value);
@@ -254,7 +263,7 @@ namespace SharpTools.Functional.Option
         /// </summary>
         /// <typeparam name="A">Wrapped value type</typeparam>
         /// <param name="value">Value to wrap</param>
-        public static Option<A> Some<A>(A value)
+        public static IOption<A> Some<A>(A value)
         {
             return SharpTools.Functional.Option.Some.New(value);
         }
@@ -263,7 +272,7 @@ namespace SharpTools.Functional.Option
         /// Create a new Nothing<A> boxed as Option<A>
         /// </summary>
         /// <typeparam name="A">Wrapped value type</typeparam>
-        public static Option<A> Nothing<A>()
+        public static IOption<A> Nothing<A>()
         {
             return SharpTools.Functional.Option.Nothing.New<A>();
         }
@@ -273,7 +282,7 @@ namespace SharpTools.Functional.Option
         /// </summary>
         /// <typeparam name="A">Wrappable type</typeparam>
         /// <returns>Wrapper funtion</returns>
-        public static Func<A, Option<A>> Identity<A>()
+        public static Func<A, IOption<A>> Identity<A>()
         {
             return a => Option.New(a);
         }
@@ -283,7 +292,7 @@ namespace SharpTools.Functional.Option
         /// </summary>
         /// <typeparam name="A">Wrappable type</typeparam>
         /// <returns>Function that returns Nothing</returns>
-        public static Func<A, Option<A>> Void<A>()
+        public static Func<A, IOption<A>> Void<A>()
         {
             return a => Nothing<A>();
         }
@@ -291,28 +300,6 @@ namespace SharpTools.Functional.Option
 
     public static class MonadExtensions
     {
-        /// <summary>
-        /// Will transform any value to an Option type
-        /// </summary>
-        /// <typeparam name="A">Value type</typeparam>
-        /// <param name="self">value to wrap</param>
-        /// <returns>Wrapped value</returns>
-        public static Option<A> ToOption<A>(this A self)
-        {
-            return Option.New(self);
-        }
-
-        /// <summary>
-        /// Attempting to wrap an Option type will return an option type.
-        /// </summary>
-        /// <typeparam name="A"></typeparam>
-        /// <param name="self"></param>
-        /// <returns></returns>
-        public static Option<A> ToOption<A>(this Option<A> self)
-        {
-            return self;
-        }
-
         /// <summary>
         /// Double binding function. Allows a couple of Option types to be chained with Bind.
         /// </summary>
@@ -323,40 +310,9 @@ namespace SharpTools.Functional.Option
         /// <param name="option2">Second option type</param>
         /// <param name="binder">Combined binder</param>
         /// <returns>Bound value</returns>
-        public static Option<C> BindWith<A, B, C>(this Option<A> option1, Option<B> option2, Func<A, B, Option<C>> binder)
+		public static IOption<C> Product<A, B, C>(this IOption<A> option1, IOption<B> option2, Func<A, B, C> binder)
         {
-            return option1.Bind(val1 => option2.Bind(val2 => binder(val1, val2)));
-        }
-
-        /// <summary>
-        /// Will get the value of Some types and the type's default value for Nothing
-        /// </summary>
-        /// <typeparam name="A">Wrapped value type</typeparam>
-        /// <param name="self">Option value</param>
-        /// <returns>Unwrapped value</returns>
-        public static A ToValueOrDefault<A>(this Option<A> self)
-        {
-            if (self is Nothing<A>) {
-                return default(A);
-            } else {
-                return (self as Some<A>).Value;
-            }
-        }
-
-        /// <summary>
-        /// Will get the value of Some types and invoke the provider for Nothing types
-        /// </summary>
-        /// <typeparam name="A">Wrapped value type</typeparam>
-        /// <param name="self">Option value</param>
-        /// <param name="provider">Fallback callback</param>
-        /// <returns>Unwrapped value</returns>
-        public static A ToValueOrDefault<A>(this Option<A> self, Func<A> provider)
-        {
-            if (self is Nothing<A>) {
-                return provider();
-            } else {
-                return (self as Some<A>).Value;
-            }
+            return option1.FlatMap(val1 => option2.Map(val2 => binder(val1, val2)));
         }
     }
 }

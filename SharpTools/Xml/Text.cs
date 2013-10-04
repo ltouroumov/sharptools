@@ -13,7 +13,7 @@ namespace SharpTools.Xml
         /// Reads all contiguos text nodes and returns their value.
         /// </summary>
         /// <returns>Some(Text value)</returns>
-        public static Option<string> ReadText(this XmlReader self)
+		public static IOption<string> ReadText(this XmlReader self)
         {
             if (self.NodeType != XmlNodeType.Text) return Nothing.New<string>();
 
@@ -22,7 +22,7 @@ namespace SharpTools.Xml
                 x => x.NodeType != XmlNodeType.Text,
                 x => sb.Append(x.Value));
 
-            return sb.ToString().ToOption();
+            return Option.New(sb.ToString());
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace SharpTools.Xml
         /// <param name="nodeName">Name of the node</param>
         /// <param name="transformer">Text parser</param>
         /// <returns>Some(Parsed value) | Nothing</returns>
-        public static Option<A> ScalarNode<A>(this XmlReader self, string nodeName, Func<string, A> transformer)
+		public static IOption<A> ScalarNode<A>(this XmlReader self, string nodeName, Func<string, A> transformer)
         {
             if (!self.IsElement(nodeName) || self.IsEmptyElement) return Nothing.New<A>();
 
@@ -44,7 +44,7 @@ namespace SharpTools.Xml
                 x => buffer.Append(x.Value));
 
             var returnValue = buffer.ToString();
-            return transformer(returnValue).ToOption();
+            return Option.New(transformer(returnValue));
         }
 
         /// <summary>
@@ -52,12 +52,12 @@ namespace SharpTools.Xml
         /// </summary>
         /// <param name="nodeName">Name of the node</param>
         /// <returns>Some(Text value) | Nothing</returns>
-        public static Option<string> ScalarNode(this XmlReader self, string nodeName)
+		public static IOption<string> ScalarNode(this XmlReader self, string nodeName)
         {
             return ScalarNode<string>(self, nodeName, Function.Identity<string>());
         }
 
-		public static Option<A> ScalarAttribute<A>(this XmlReader self, string attrName, Func<string, A> transformer)
+		public static IOption<A> ScalarAttribute<A>(this XmlReader self, string attrName, Func<string, A> transformer)
 		{
 			var attrValue = self.GetAttribute(attrName);
 			if (attrValue != null) {

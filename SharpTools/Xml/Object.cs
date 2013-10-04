@@ -18,14 +18,14 @@ namespace SharpTools.Xml
         /// <param name="nodeName">Name of child nodes</param>
         /// <param name="transformer">Transformer function</param>
         /// <returns>Some(Lisr of objects) | Nothing</returns>
-        public static Option<IList<T>> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
+        public static IOption<IList<T>> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
         {
             //if (self.IsElement(nodeName)) return Nothing.New<IList<T>>();
 
             var list = new List<T>();
 
             self.ReadCurrentNode(reader1 => {
-                reader1.ObjectNode(nodeName, transformer).Bind(list.Add);
+                reader1.ObjectNode(nodeName, transformer).MatchSome(list.Add);
             });
 
             return Option.New(list as IList<T>, val => val.Count > 0);
@@ -41,7 +41,7 @@ namespace SharpTools.Xml
         /// <param name="builder">Object builder function</param>
         /// <param name="iterator">Body callback function</param>
         /// <returns>Some(List of objects) | Nothing</returns>
-        public static Option<IList<T>> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
+		public static IOption<IList<T>> ObjectNodeList<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
         {
             return self.ObjectNodeList(nodeName, FunctionsBuilder.MakeIterableItemBuilder(builder, iterator));
         }
@@ -57,11 +57,11 @@ namespace SharpTools.Xml
         /// <param name="nodeName">Name of the XML node</param>
         /// <param name="transformer">Transformer function</param>
         /// <returns>Some(Object) | Nothing</returns>
-        public static Option<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
+		public static IOption<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
         {
             if (!self.IsElement(nodeName)) return Nothing.New<T>();
 
-            return transformer(self).ToOption();
+            return Option.New(transformer(self));
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace SharpTools.Xml
         /// <param name="builder">Object builder function</param>
         /// <param name="iterator">Body callback function</param>
         /// <returns>Some(Object) | Nothing</returns>
-        public static Option<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
+		public static IOption<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<XmlReader, T> iterator)
         {
             return self.ObjectNode(nodeName, FunctionsBuilder.MakeIterableItemBuilder(builder, iterator));
         }
@@ -92,7 +92,7 @@ namespace SharpTools.Xml
         /// <param name="builder">Object builder function</param>
         /// <param name="text">Body callback function</param>
         /// <returns></returns>
-        public static Option<T> ObjectNodeWithContent<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<string, T> text)
+		public static IOption<T> ObjectNodeWithContent<T>(this XmlReader self, string nodeName, Func<XmlReader, T> builder, Action<string, T> text)
         {
             return self.ObjectNode(nodeName, FunctionsBuilder.MakeTextReaderBuilder(builder, text));
         }
@@ -103,7 +103,7 @@ namespace SharpTools.Xml
         /// <summary>
         /// Provides a function that returns an empty list. Can be used with <see cref="Option.Fallback"/> when an empty list is not considered a <see cref="Nothing"/>.
         /// </summary>
-        public static Func<Option<IList<T>>> EmptyList<T>()
+		public static Func<IOption<IList<T>>> EmptyList<T>()
         {
             return () => Option.Some(Collections.IList<T>());
         }
@@ -113,7 +113,7 @@ namespace SharpTools.Xml
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static Func<Option<T>> Empty<T>()
+		public static Func<IOption<T>> Empty<T>()
             where T : class, new()
         {
             return () => Option.Some(new T());
