@@ -216,7 +216,7 @@ namespace SharpTools.Functional.Option
     /// <summary>
     /// Static class to allow easy creation of Nothing type
     /// </summary>
-    public static class Nothing
+    public static class None
     {
         public static IOption<A> New<A>()
         {
@@ -254,7 +254,7 @@ namespace SharpTools.Functional.Option
             if (discriminator(value)) {
                 return Some(value);
             } else {
-                return Nothing<A>();
+                return None<A>();
             }
         }
 
@@ -272,9 +272,9 @@ namespace SharpTools.Functional.Option
         /// Create a new Nothing<A> boxed as Option<A>
         /// </summary>
         /// <typeparam name="A">Wrapped value type</typeparam>
-        public static IOption<A> Nothing<A>()
+        public static IOption<A> None<A>()
         {
-            return SharpTools.Functional.Option.Nothing.New<A>();
+            return SharpTools.Functional.Option.None.New<A>();
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace SharpTools.Functional.Option
         /// <returns>Function that returns Nothing</returns>
         public static Func<A, IOption<A>> Void<A>()
         {
-            return a => Nothing<A>();
+            return a => None<A>();
         }
     }
 

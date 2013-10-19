@@ -15,7 +15,7 @@ namespace SharpTools.Xml
         /// <returns>Some(Text value)</returns>
 		public static IOption<string> ReadText(this XmlReader self)
         {
-            if (self.NodeType != XmlNodeType.Text) return Nothing.New<string>();
+            if (self.NodeType != XmlNodeType.Text) return None.New<string>();
 
             var sb = new StringBuilder();
             self.ReadUntil(
@@ -36,7 +36,7 @@ namespace SharpTools.Xml
         /// <returns>Some(Parsed value) | Nothing</returns>
 		public static IOption<A> ScalarNode<A>(this XmlReader self, string nodeName, Func<string, A> transformer)
         {
-            if (!self.IsElement(nodeName) || self.IsEmptyElement) return Nothing.New<A>();
+            if (!self.IsElement(nodeName) || self.IsEmptyElement) return None.New<A>();
 
             var buffer = new StringBuilder();
             self.ReadUntil(
@@ -63,7 +63,7 @@ namespace SharpTools.Xml
 			if (attrValue != null) {
 				return Option.Some(transformer(attrValue));
 			}
-			return Option.Nothing<A>();
+			return Option.None<A>();
 		}
     }
 }

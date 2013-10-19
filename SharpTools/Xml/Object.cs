@@ -59,7 +59,7 @@ namespace SharpTools.Xml
         /// <returns>Some(Object) | Nothing</returns>
 		public static IOption<T> ObjectNode<T>(this XmlReader self, string nodeName, Func<XmlReader, T> transformer)
         {
-            if (!self.IsElement(nodeName)) return Nothing.New<T>();
+            if (!self.IsElement(nodeName)) return None.New<T>();
 
             return Option.New(transformer(self));
         }
